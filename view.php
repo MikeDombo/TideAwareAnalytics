@@ -8,15 +8,15 @@
 	$endDate = date("U", strtotime("today"));
 	
 	if (isset($_GET['start']) || isset($_GET['end'])){
-		if(strtotime($_GET['start'])>0){
+		if(isset($_GET['start']) && strtotime($_GET['start'])>0){
 			$startDate = strtotime($_GET['start']);
-			if(!strtotime($_GET['end'])>0){
+			if(!isset($_GET['end']) || !strtotime($_GET['end'])>0){
 				$endDate = date("U", strtotime("+1 day", $startDate));
 			}
 		}
-		if(strtotime($_GET['end'])>0){
+		if(isset($_GET['end']) && strtotime($_GET['end'])>0){
 			$endDate = strtotime($_GET['end']);
-			if(!strtotime($_GET['start'])>0){
+			if(!isset($_GET['start']) || !strtotime($_GET['start'])>0){
 				$startDate = date("U", strtotime("-1 day", $endDate));
 			}
 		}
