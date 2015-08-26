@@ -3,6 +3,7 @@ Custom Analytics Solution for Tide Aware Pebble App
 
 View Live at [mikedombrowski.com/peb.php](http://mikedombrowski.com/peb.php)
 
+__________________
 
 Gather.php
 ----------
@@ -12,3 +13,12 @@ Gather.php accepts HTTP GET requests of "location", "ID", "US", "settings", "ver
  - US - Boolean value representing the app used, either US or Non-US
  - settings - JSON encoded array of all app settings
  - ver - Version number used when looking up the latest tide
+
+View.php
+--------
+View.php reads from the database and generates graphs and charts for a specified time period.
+
+daily-chron.php
+---------------
+This script should be set to automatically run with cron at least once every 3 days, although idealy more often.
+It updates a separate sql table with new rows for each day. The number of users of each app and the versions of each app, as well as the number of tide lookups everyday is recorded.
