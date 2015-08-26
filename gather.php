@@ -1,3 +1,7 @@
+<!-- Author: Michael Dombrowski
+Website: MikeDombrowski.com
+Github: github.com/md100play/TideAwareAnalytics/
+-->
 <?php
 
 $database = "################";
