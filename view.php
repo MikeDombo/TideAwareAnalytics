@@ -8,20 +8,20 @@ Github: github.com/md100play/TideAwareAnalytics/
 	$pass = "####################";
 	$link = mysqli_connect("localhost", $user, $pass, $database) or die("Error " . mysqli_error($link));
 	
-	$startDate = date("U", strtotime("today -1 week"));
-	$endDate = date("U", strtotime("today"));
+	$startDate = date("U", strtotime("-1 week", time()));
+	$endDate = date("U", time());
 	
 	if (isset($_GET['start']) || isset($_GET['end'])){
 		if(isset($_GET['start']) && strtotime($_GET['start'])>0){
 			$startDate = strtotime($_GET['start']);
 			if(!isset($_GET['end']) || !strtotime($_GET['end'])>0){
-				$endDate = date("U", strtotime("+1 day", $startDate));
+				$endDate = date("U", strtotime("+1 week", $startDate));
 			}
 		}
 		if(isset($_GET['end']) && strtotime($_GET['end'])>0){
 			$endDate = strtotime($_GET['end']);
 			if(!isset($_GET['start']) || !strtotime($_GET['start'])>0){
-				$startDate = date("U", strtotime("-1 day", $endDate));
+				$startDate = date("U", strtotime("-1 week", $endDate));
 			}
 		}
 	}
@@ -123,27 +123,31 @@ Github: github.com/md100play/TideAwareAnalytics/
 <html>
 	<head>
 		<title>Tide Aware Analytics</title>
-		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css"></link>
+		<link rel="stylesheet" href="bootstrap.min.css"></link>
 		<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 		<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 		<style type="text/css">
 			body {
 				padding-top: 50px;
 			} 
+			
 			.piechart {
 				position: relative;
 				width: 100%;
 				height: 100%;
 				max-height: 400px;
 			}
+			
 			.zoom-plot {
 				position: relative;
 				width: 100%;
 				height: 100%;
 				max-height: 400px;
 			}
+			
 			.flotTip {
 				  padding: 3px 5px;
 				  background-color: #000;
@@ -157,8 +161,9 @@ Github: github.com/md100play/TideAwareAnalytics/
 				  -moz-border-radius: 4px;
 				  border-radius: 4px;
 			}
+			
 			.vdivide [class*='col-']:after {
-			  background: #e0e0e0;
+			  background: #464545;
 			  width: 1px;
 			  content: "";
 			  display:block;
@@ -168,8 +173,6 @@ Github: github.com/md100play/TideAwareAnalytics/
 			  right: 0;
 			  min-height: 70px;
 			}
-			@media (min-width: 768px){#date{padding-right: 30px; padding-top: 10px;}}
-			@media (max-width: 768px){#date{padding-left: 20px;} body{padding-top: 120px;}}
 		</style>
 	</head>
 	<body>
@@ -205,28 +208,46 @@ Github: github.com/md100play/TideAwareAnalytics/
 				});
 			});
 		</script>
-		<nav class="navbar navbar-inverse navbar-fixed-top">
+		<div class="navbar navbar-default navbar-fixed-top">
+			<div class="container">
 				<div class="navbar-header">
-					<a class="navbar-brand" href="#">Tide Aware Analytics</a>
+					<a href="/" class="navbar-brand">Tide Aware Analytics</a>
+					<button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
 				</div>
-				<ul class="nav navbar-nav navbar-right" id="date">
-					<li>
-						<label for="from" style="color: #9d9d9d;">From</label>
-						<input type="text" id="from" name="from" placeholder="<?php echo date("m/d/Y", $startDate);?>">
-					</li>
-					<li>
-						<label for="to" style="color: #9d9d9d;">To</label>
-						<input type="text" id="to" name="to" placeholder="<?php echo date("m/d/Y", $endDate);?>">
-					</li>
-				 </ul>
-		</nav>
+				<div class="navbar-collapse collapse" id="navbar-main">
+					<ul class="nav navbar-nav navbar-right" id="date">
+						<li><a>
+							<label for="from">From</label>
+							<input type="text" id="from" name="from" placeholder="<?php echo date("m/d/Y", $startDate);?>"></a>
+						</li>
+						<li><a>
+							<label for="to">To</label>
+							<input type="text" id="to" name="to" placeholder="<?php echo date("m/d/Y", $endDate);?>"></a>
+						</li>
+						<li>
+							<a href="#versions">Versions</a>
+						</li>
+						<li>
+							<a href="#uniques">Uniques</a>
+						</li>
+						<li>
+							<a href="#new-returning">New vs. Returning</a>
+						</li>
+					 </ul>
+				</div>
+			</div>
+		</div>
 		
 		<div class="container-fluid">
 			<div class="row vdivide">
 					<div class="col-md-4">
 					<script type="text/javascript">
 						function since(){
-							window.alert("Counting began <?php echo date("U", 1439933414);?>");
+							window.alert("Counting began <?php echo date("Y-m-d", 1439933414);?>");
 						}
 					</script>
 					<script language="javascript" type="text/javascript" src="/flot/jquery.flot.js"></script>
@@ -495,7 +516,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 				</div>
 			</div>
 			<hr width=100%>
-			<div class="row vdivide">
+			<div class="row vdivide" id="uniques">
 				<div class="col-md-6">
 					<h1>Daily Unique Users</h1>
 					<script type="text/javascript">
@@ -533,7 +554,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 								d.setUTCHours(0);
 								var i = d.getTime();
 								do {
-									markings.push({ xaxis: { from: i, to: i + 2 * 24 * 60 * 60 * 1000 } });
+									markings.push({ xaxis: { from: i, to: i + 2 * 24 * 60 * 60 * 1000 }, color: "rgba(135, 190, 218, .9)" });
 									i += 7 * 24 * 60 * 60 * 1000;
 								} while (i < axes.xaxis.max);
 
@@ -560,8 +581,9 @@ Github: github.com/md100play/TideAwareAnalytics/
 									},
 									lines: {
 										show: true,
-										lineWidth: 1,
-										fill: true
+										lineWidth: 3,
+										fill: true,
+										fillColor: { colors:[{ opacity: .8 }, {opacity:1}] }
 									},
 									stack: true
 								},
@@ -573,7 +595,8 @@ Github: github.com/md100play/TideAwareAnalytics/
 									  y: 0
 									},
 									defaultTheme: false
-								}
+								},
+								colors: ["#375a7f", "#009871"]
 							};
 
 							var plot = $.plot("#visitors", d, options);
@@ -581,7 +604,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 								series: {
 									lines: {
 										show: true,
-										lineWidth: 1
+										lineWidth: 4
 									},
 									shadowSize: 0
 								},
@@ -597,9 +620,13 @@ Github: github.com/md100play/TideAwareAnalytics/
 								selection: {
 									mode: "x"
 								},
+								grid: {
+									markings: weekendAreas
+								},
 								legend: {
 									show:false
-								}
+								},
+								colors: ["#375a7f", "#009871"]
 							});
 							
 							$("#visitors").bind("plotselected", function (event, ranges) {
@@ -611,9 +638,6 @@ Github: github.com/md100play/TideAwareAnalytics/
 								plot.setupGrid();
 								plot.draw();
 								plot.clearSelection();
-
-								// don't fire event on the overview to prevent eternal loop
-
 								overview.setSelection(ranges, true);
 							});
 
@@ -685,7 +709,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 								d.setUTCHours(0);
 								var i = d.getTime();
 								do {
-									markings.push({ xaxis: { from: i, to: i + 2 * 24 * 60 * 60 * 1000 } });
+									markings.push({ xaxis: { from: i, to: i + 2 * 24 * 60 * 60 * 1000 }, color: "rgba(135, 190, 218, .9)" });
 									i += 7 * 24 * 60 * 60 * 1000;
 								} while (i < axes.xaxis.max);
 
@@ -712,8 +736,9 @@ Github: github.com/md100play/TideAwareAnalytics/
 									},
 									lines: {
 										show: true,
-										lineWidth: 1,
-										fill: true
+										lineWidth: 3,
+										fill: true,
+										fillColor: { colors:[{ opacity: .8 }, {opacity:1}] }
 									},
 									stack: true
 								},
@@ -725,7 +750,8 @@ Github: github.com/md100play/TideAwareAnalytics/
 									  y: 0
 									},
 									defaultTheme: false
-								}
+								},
+								colors: ["#375a7f", "#009871"]
 							};
 
 							var plot2 = $.plot("#lookups", d, options);
@@ -733,7 +759,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 								series: {
 									lines: {
 										show: true,
-										lineWidth: 1
+										lineWidth: 4
 									},
 									shadowSize: 0
 								},
@@ -749,9 +775,13 @@ Github: github.com/md100play/TideAwareAnalytics/
 								selection: {
 									mode: "x"
 								},
+								grid: {
+									markings: weekendAreas
+								},
 								legend: {
 									show:false
-								}
+								},
+								colors: ["#375a7f", "#009871"]
 							});
 							
 							$("#lookups").bind("plotselected", function (event, ranges) {
@@ -813,7 +843,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 				</div>
 			</div>
 			<hr width=100%>
-			<div class="row vdivide">
+			<div class="row vdivide" id="versions">
 				<div class="col-md-12">
 					<h1>Version Analytics</h1>
 					<hr>
@@ -829,15 +859,11 @@ Github: github.com/md100play/TideAwareAnalytics/
 									$.plot(placeholder, data, {
 										series: {
 											pie: { 
-												innerRadius: 0.5,
+												innerRadius: 0.65,
 												show: true,
-												label: {
-													show: true,
-													radius: .65,
-													background: {
-														opacity: 0.7,
-														color: '#000'
-													}
+												stroke: {
+													width: 0.1,
+													color: '#222222'
 												}
 											}
 										},
@@ -845,7 +871,9 @@ Github: github.com/md100play/TideAwareAnalytics/
 											hoverable: true,
 											clickable: true
 										},
-										legend: {show: false},
+										legend: {
+											show: true
+										},
 										tooltip: {
 											show: true,
 											content: "%s=%p.0%, n=%n", // show percentages, rounding to 2 decimal places
@@ -854,7 +882,8 @@ Github: github.com/md100play/TideAwareAnalytics/
 											  y: 0
 											},
 											defaultTheme: false
-										  }
+										  },
+										  colors: ["#375a7f", "#009871", "rgb(203,75,75)", "rgb(175,216,248)", "#7B68EE", "#FFF5EE"]
 									});
 									placeholder.bind("plothover", function(event, pos, obj) {
 										if (!obj) {
@@ -868,7 +897,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 											return;
 										}
 										$("#hover").html("<span style='font-weight:bold; color:" + obj.series.color + "'>" + obj.series.label + " ("+ obj.datapoint[1]+"%)</span>");
-									});
+									});								
 								});
 								function labelFormatter(label, series) {
 									return "<div style='font-size:8pt; text-align:center; padding:2px; color:white;'>" + label + "<br/>" + Math.round(series.percent) + "%</div>";
@@ -886,15 +915,11 @@ Github: github.com/md100play/TideAwareAnalytics/
 									$.plot(placeholder2, data, {
 										series: {
 											pie: { 
-												innerRadius: 0.5,
+												innerRadius: 0.65,
 												show: true,
-												label: {
-													show: true,
-													radius: .65,
-													background: {
-														opacity: 0.7,
-														color: '#000'
-													}
+												stroke: {
+													width: 0.1,
+													color: '#222222'
 												}
 											}
 										},
@@ -902,7 +927,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 											hoverable: true,
 											clickable: true
 										},
-										legend: {show: false},
+										legend: {show: true},
 										tooltip: {
 											show: true,
 											content: "%s=%p.0%, n=%n", // show percentages, rounding to 2 decimal places
@@ -911,7 +936,8 @@ Github: github.com/md100play/TideAwareAnalytics/
 											  y: 0
 											},
 											defaultTheme: false
-										  }
+										  },
+										  colors: ["#375a7f", "#009871", "rgb(203,75,75)", "rgb(175,216,248)", "#7B68EE", "#FFF5EE"]
 									});
 									placeholder2.bind("plothover", function(event, pos, obj) {
 										if (!obj) {
@@ -940,15 +966,11 @@ Github: github.com/md100play/TideAwareAnalytics/
 									$.plot(placeholder3, data, {
 										series: {
 											pie: { 
-												innerRadius: 0.5,
+												innerRadius: 0.65,
 												show: true,
-												label: {
-													show: true,
-													radius: .65,
-													background: {
-														opacity: 0.7,
-														color: '#000'
-													}
+												stroke: {
+													width: 0.1,
+													color: '#222222'
 												}
 											}
 										},
@@ -956,7 +978,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 											hoverable: true,
 											clickable: true
 										},
-										legend: {show: false},
+										legend: {show: true},
 										tooltip: {
 											show: true,
 											content: "%s=%p.0%, n=%n", // show percentages, rounding to 2 decimal places
@@ -965,7 +987,8 @@ Github: github.com/md100play/TideAwareAnalytics/
 											  y: 0
 											},
 											defaultTheme: false
-										  }
+										  },
+										  colors: ["#375a7f", "#009871", "rgb(203,75,75)", "rgb(175,216,248)", "#7B68EE", "#FFF5EE"]
 									});
 									placeholder3.bind("plothover", function(event, pos, obj) {
 										if (!obj) {
@@ -995,15 +1018,11 @@ Github: github.com/md100play/TideAwareAnalytics/
 									$.plot(placeholder6, data, {
 										series: {
 											pie: { 
-												innerRadius: 0.5,
+												innerRadius: 0.65,
 												show: true,
-												label: {
-													show: true,
-													radius: .65,
-													background: {
-														opacity: 0.7,
-														color: '#000'
-													}
+												stroke: {
+													width: 0.1,
+													color: '#222222'
 												}
 											}
 										},
@@ -1011,7 +1030,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 											hoverable: true,
 											clickable: true
 										},
-										legend: {show: false},
+										legend: {show: true},
 										tooltip: {
 											show: true,
 											content: "%s=%p.0%, n=%n", // show percentages, rounding to 2 decimal places
@@ -1020,7 +1039,8 @@ Github: github.com/md100play/TideAwareAnalytics/
 											  y: 0
 											},
 											defaultTheme: false
-										  }
+										  },
+										  colors: ["#375a7f", "#009871", "rgb(203,75,75)", "rgb(175,216,248)", "#7B68EE", "#FFF5EE"]
 									});
 									placeholder6.bind("plothover", function(event, pos, obj) {
 										if (!obj) {
@@ -1044,7 +1064,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 			</div>
 			<hr width="100%"></hr>
 			
-			<div class="row vdivide">
+			<div class="row vdivide" id="new-returning">
 				<div class="col-md-6">
 					<h2>New vs. Returning</h2>
 					<hr>
@@ -1066,12 +1086,16 @@ Github: github.com/md100play/TideAwareAnalytics/
 											pie: { 
 												innerRadius: 0.5,
 												show: true,
+												stroke: {
+													width: 0.1,
+													color: '#222222'
+												},
 												label: {
 													show: true,
 													radius: .65,
 													background: {
 														opacity: 0.7,
-														color: '#000'
+														color: '#FFF'
 													}
 												}
 											}
@@ -1089,7 +1113,8 @@ Github: github.com/md100play/TideAwareAnalytics/
 											  y: 0
 											},
 											defaultTheme: false
-										  }
+										  },
+										  colors: ["#375a7f", "#009871", "rgb(203,75,75)", "rgb(175,216,248)", "#7B68EE", "#FFF5EE"]
 									});
 									placeholder4.bind("plothover", function(event, pos, obj) {
 										if (!obj) {
@@ -1125,12 +1150,16 @@ Github: github.com/md100play/TideAwareAnalytics/
 											pie: { 
 												innerRadius: 0.5,
 												show: true,
+												stroke: {
+													width: 0.1,
+													color: '#222222'
+												},
 												label: {
 													show: true,
 													radius: .65,
 													background: {
 														opacity: 0.7,
-														color: '#000'
+														color: '#FFF'
 													}
 												}
 											}
@@ -1148,7 +1177,8 @@ Github: github.com/md100play/TideAwareAnalytics/
 											  y: 0
 											},
 											defaultTheme: false
-										  }
+										  },
+										  colors: ["#375a7f", "#009871", "rgb(203,75,75)", "rgb(175,216,248)", "#7B68EE", "#FFF5EE"]
 									});
 									placeholder7.bind("plothover", function(event, pos, obj) {
 										if (!obj) {
@@ -1184,12 +1214,16 @@ Github: github.com/md100play/TideAwareAnalytics/
 											pie: { 
 												innerRadius: 0.5,
 												show: true,
+												stroke: {
+													width: 0.1,
+													color: '#222222'
+												},
 												label: {
 													show: true,
 													radius: .65,
 													background: {
 														opacity: 0.7,
-														color: '#000'
+														color: '#FFF'
 													}
 												}
 											}
@@ -1207,7 +1241,8 @@ Github: github.com/md100play/TideAwareAnalytics/
 											  y: 0
 											},
 											defaultTheme: false
-										  }
+										  },
+										  colors: ["#375a7f", "#009871", "rgb(203,75,75)", "rgb(175,216,248)", "#7B68EE", "#FFF5EE"]
 									});
 									placeholder5.bind("plothover", function(event, pos, obj) {
 										if (!obj) {
