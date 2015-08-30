@@ -125,6 +125,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 		<title>Tide Aware Analytics</title>
 		<link rel="stylesheet" href="bootstrap.min.css"></link>
 		<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+		<link rel="shortcut icon" href="http://mikedombrowski.com/analytics/favicon.ico">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
@@ -173,6 +174,8 @@ Github: github.com/md100play/TideAwareAnalytics/
 			  right: 0;
 			  min-height: 70px;
 			}
+			
+			.ui-datepicker{z-index:1200 !important;}
 		</style>
 	</head>
 	<body>
@@ -211,7 +214,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 		<div class="navbar navbar-default navbar-fixed-top">
 			<div class="container">
 				<div class="navbar-header">
-					<a href="/" class="navbar-brand">Tide Aware Analytics</a>
+					<a href="/analytics/" class="navbar-brand">Tide Aware Analytics</a>
 					<button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
@@ -219,15 +222,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 					</button>
 				</div>
 				<div class="navbar-collapse collapse" id="navbar-main">
-					<ul class="nav navbar-nav navbar-right" id="date">
-						<li><a>
-							<label for="from">From</label>
-							<input type="text" id="from" name="from" placeholder="<?php echo date("m/d/Y", $startDate);?>"></a>
-						</li>
-						<li><a>
-							<label for="to">To</label>
-							<input type="text" id="to" name="to" placeholder="<?php echo date("m/d/Y", $endDate);?>"></a>
-						</li>
+					<ul class="nav navbar-nav navbar-right">
 						<li>
 							<a href="#versions">Versions</a>
 						</li>
@@ -237,7 +232,32 @@ Github: github.com/md100play/TideAwareAnalytics/
 						<li>
 							<a href="#new-returning">New vs. Returning</a>
 						</li>
-					 </ul>
+						<li>
+							<a href="javascript:history.go(0)">
+								<span class="glyphicon glyphicon-refresh" style="padding-top:3px;"></span>
+							</a>
+						</li>
+						<li>
+							<a href="#" data-toggle="dropdown" class="dropdown-toggle" role="button" aria-expanded="false" aria-haspopup="true">Time Frame <span class="caret"></span></a>
+							<ul class="dropdown-menu" id="date">
+								<li class="dropdown-header">Predefined Time Frame</li>
+								<li><a href="?start=<?php echo date("m/d/Y", strtotime("today -1 month"))."&end=".date("m/d/Y", strtotime("today"));?>">Past Month</a></li>
+								<li><a href="?start=<?php echo date("m/d/Y", strtotime("today -1 week"))."&end=".date("m/d/Y", strtotime("today"));?>">Past Week</a></li>
+								<li><a href="?start=<?php echo date("m/d/Y", strtotime("today -1 day"))."&end=".date("m/d/Y", strtotime("today"));?>">Past Day</a></li>
+								<li><a href="?start=<?php echo date("m/d/Y", strtotime("today"))."&end=".date("m/d/Y", strtotime("today +1 day"));?>">Today</a></li>
+								<li class="divider" role="separator"></li>
+								<li class="dropdown-header">Custom Time Frame</li>
+								<li><a>
+									<label for="from">From&nbsp;</label>
+									<input type="text" id="from" name="from" placeholder="<?php echo date("m/d/Y", $startDate);?>"></a>
+								</li>
+								<li><a>
+									<label for="to">To&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+									<input type="text" id="to" name="to" placeholder="<?php echo date("m/d/Y", $endDate);?>"></a>
+								</li>
+							</ul>
+						</li>
+					</ul>
 				</div>
 			</div>
 		</div>
@@ -260,14 +280,6 @@ Github: github.com/md100play/TideAwareAnalytics/
 					<h2><a href="#" onclick="since()">Total Number of Users Ever: <?php echo(intval(mysqli_fetch_array(mysqli_query($link, "SELECT COUNT(1) from `Users`"))[0]));?></a></h2>
 					<h3>Total US Users: <?php echo(intval(mysqli_fetch_array(mysqli_query($link, "SELECT COUNT(1) from `Users` WHERE `US`='1'"))[0]));?></h3>
 					<h3>Total Non-US Users: <?php echo(intval(mysqli_fetch_array(mysqli_query($link, "SELECT COUNT(1) from `Users` WHERE `US`='0'"))[0]));?></h3>
-					<hr>
-					<h2>Total Number of Users Past Month: <?php echo mysqli_fetch_array(mysqli_query($link, "SELECT COUNT(1) FROM (SELECT `Last Time` from `Users` HAVING `Last Time` > '".intval(date("U", strtotime("-1 month")))."') AS T"))[0];?></h2>
-					<h3>US Users In Past Month: <?php echo mysqli_fetch_array(mysqli_query($link, "SELECT COUNT(1) FROM (SELECT `Last Time` from `Users` WHERE `US`='1' HAVING `Last Time` > '".intval(date("U", strtotime("-1 month")))."') AS T"))[0];?></h3>
-					<h3>Non-US Users In Past Month: <?php echo mysqli_fetch_array(mysqli_query($link, "SELECT COUNT(1) FROM (SELECT `Last Time` from `Users` WHERE `US`='0' HAVING `Last Time` > '".intval(date("U", strtotime("-1 month")))."') AS T"))[0];?></h3>
-					<hr>
-					<h2>Total Number of Users Past Week: <?php echo mysqli_fetch_array(mysqli_query($link, "SELECT COUNT(1) FROM (SELECT `Last Time` from `Users` HAVING `Last Time` > '".intval(date("U", strtotime("-1 week")))."') AS T"))[0];?></h2>
-					<h3>US Users In Past Week: <?php echo mysqli_fetch_array(mysqli_query($link, "SELECT COUNT(1) FROM (SELECT `Last Time` from `Users` WHERE `US`='1' HAVING `Last Time` > '".intval(date("U", strtotime("-1 week")))."') AS T"))[0];?></h3>
-					<h3>Non-US Users In Past Week: <?php echo mysqli_fetch_array(mysqli_query($link, "SELECT COUNT(1) FROM (SELECT `Last Time` from `Users` WHERE `US`='0' HAVING `Last Time` > '".intval(date("U", strtotime("-1 week")))."') AS T"))[0];?></h3>
 					<hr>
 					<h2>Total Number of Users: <?php echo mysqli_fetch_array(mysqli_query($link, "SELECT COUNT(1) FROM (SELECT `Last Time` from (SELECT `Last Time` from `Users` HAVING `Last Time` >= '".$startDate."') AS T HAVING `Last Time`< '".$endDate."') AS X"))[0];?></h2>
 					<h3>US Users: <?php echo mysqli_fetch_array(mysqli_query($link, "SELECT COUNT(1) FROM (SELECT `Last Time` from (SELECT `Last Time` from `Users` WHERE `US` = '1' HAVING `Last Time` >= '".$startDate."') AS T HAVING `Last Time`< '".$endDate."') AS X"))[0];?></h3>
@@ -323,47 +335,6 @@ Github: github.com/md100play/TideAwareAnalytics/
 						array_push($alltime, $v);
 					}
 					
-					$result = mysqli_query($link, "SELECT `Lookup` FROM (SELECT * FROM `Users` HAVING `Last Time` > '".intval(date("U", strtotime("-1 month")))."') AS T");
-					echo mysqli_error($link);
-					$arr = array();
-					while($row = mysqli_fetch_array($result)){
-						$row = json_decode($row['Lookup'], True);
-						foreach($row as $k=>$v){
-							if(isset($arr[$k])){
-								$arr[$k] = $arr[$k]+count($v);
-							}
-							else {
-								$arr[$k] = count($v);
-							}
-						}
-					}
-					arsort($arr);
-					$month = array();
-					foreach($arr as $k=>$v){
-						array_push($month, $k);
-						array_push($month, $v);
-					}
-					
-					$result = mysqli_query($link, "SELECT `Lookup` from (SELECT * from `Users` HAVING `Last Time` > '".intval(date("U", strtotime("-1 week")))."') AS T");
-					$arr = array();
-					while($row = mysqli_fetch_array($result)){
-						$row = json_decode($row['Lookup'], True);
-						foreach($row as $k=>$v){
-							if(isset($arr[$k])){
-								$arr[$k] = $arr[$k]+count($v);
-							}
-							else {
-								$arr[$k] = count($v);
-							}
-						}
-					}
-					arsort($arr);
-					$week = array();
-					foreach($arr as $k=>$v){
-						array_push($week, $k);
-						array_push($week, $v);
-					}
-					
 					$result = mysqli_query($link, "SELECT `Lookup` from (SELECT `Lookup`, `Last Time` from (SELECT `Lookup`, `Last Time` from `Users` HAVING `Last Time` >= '".$startDate."') AS T HAVING `Last Time`< '".$endDate."') AS X");
 					$arr = array();
 					while($row = mysqli_fetch_array($result)){
@@ -388,18 +359,6 @@ Github: github.com/md100play/TideAwareAnalytics/
 					<tr><td><?php echo $alltime[0]?></td><td><?php echo $alltime[1]?></td></tr>
 					<tr><td><?php echo $alltime[2]?></td><td><?php echo $alltime[3]?></td></tr>
 					<tr><td><?php echo $alltime[4]?></td><td><?php echo $alltime[5]?></td></tr>
-					</table></div>
-					<hr>
-					<h3>Top Locations of Last Month:</h3><div class="table-responsive"><table class="table table-striped"><thread><tr><th>Location</th><th>Number of Lookups</th></tr></thread>
-					<tr><td><?php echo $month[0]?></td><td><?php echo $month[1]?></td></tr>
-					<tr><td><?php echo $month[2]?></td><td><?php echo $month[3]?></td></tr>
-					<tr><td><?php echo $month[4]?></td><td><?php echo $month[5]?></td></tr>
-					</table></div>
-					<hr>
-					<h3>Top Locations of Last Week:</h3><div class="table-responsive"><table class="table table-striped"><thread><tr><th>Location</th><th>Number of Lookups</th></tr></thread>
-					<tr><td><?php echo $week[0]?></td><td><?php echo $week[1]?></td></tr>
-					<tr><td><?php echo $week[2]?></td><td><?php echo $week[3]?></td></tr>
-					<tr><td><?php echo $week[4]?></td><td><?php echo $week[5]?></td></tr>
 					</table></div>
 					<hr>
 					<h3>Top Locations:</h3><div class="table-responsive"><table class="table table-striped"><thread><tr><th>Location</th><th>Number of Lookups</th></tr></thread>
@@ -429,47 +388,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 						array_push($alltime, $k);
 						array_push($alltime, $v);
 					}
-					
-					$result = mysqli_query($link, "SELECT `Lookup` from (SELECT * from `Users` HAVING `Last Time` > '".intval(date("U", strtotime("-1 month")))."') AS T");
-					$arr = array();
-					while($row = mysqli_fetch_array($result)){
-						$row = json_decode($row['Lookup'], True);
-						foreach($row as $k=>$v){
-							if(isset($arr[$k])){
-								$arr[$k] = $arr[$k]+1;
-							}
-							else {
-								$arr[$k] = 1;
-							}
-						}
-					}
-					arsort($arr);
-					$month = array();
-					foreach($arr as $k=>$v){
-						array_push($month, $k);
-						array_push($month, $v);
-					}
-					
-					$result = mysqli_query($link, "SELECT `Lookup` from (SELECT * from `Users` HAVING `Last Time` > '".intval(date("U", strtotime("-1 week")))."') AS T");
-					$arr = array();
-					while($row = mysqli_fetch_array($result)){
-						$row = json_decode($row['Lookup'], True);
-						foreach($row as $k=>$v){
-							if(isset($arr[$k])){
-								$arr[$k] = $arr[$k]+1;
-							}
-							else {
-								$arr[$k] = 1;
-							}
-						}
-					}
-					arsort($arr);
-					$week = array();
-					foreach($arr as $k=>$v){
-						array_push($week, $k);
-						array_push($week, $v);
-					}
-					
+										
 					$result = mysqli_query($link, "SELECT `Lookup` from (SELECT `Lookup`, `Last Time` from (SELECT `Lookup`, `Last Time` from `Users` HAVING `Last Time` >= '".$startDate."') AS T HAVING `Last Time`< '".$endDate."') AS X");
 					$arr = array();
 					while($row = mysqli_fetch_array($result)){
@@ -494,18 +413,6 @@ Github: github.com/md100play/TideAwareAnalytics/
 					<tr><td><?php echo $alltime[0]?></td><td><?php echo $alltime[1]?></td></tr>
 					<tr><td><?php echo $alltime[2]?></td><td><?php echo $alltime[3]?></td></tr>
 					<tr><td><?php echo $alltime[4]?></td><td><?php echo $alltime[5]?></td></tr>
-					</table></div>
-					<hr>
-					<h3>Most Common Locations of Last Month:</h3><div class="table-responsive"><table class="table table-striped"><thread><tr><th>Location</th><th>Number of Users</th></tr></thread>
-					<tr><td><?php echo $month[0]?></td><td><?php echo $month[1]?></td></tr>
-					<tr><td><?php echo $month[2]?></td><td><?php echo $month[3]?></td></tr>
-					<tr><td><?php echo $month[4]?></td><td><?php echo $month[5]?></td></tr>
-					</table></div>
-					<hr>
-					<h3>Most Common Locations of Last Week:</h3><div class="table-responsive"><table class="table table-striped"><thread><tr><th>Location</th><th>Number of Users</th></tr></thread>
-					<tr><td><?php echo $week[0]?></td><td><?php echo $week[1]?></td></tr>
-					<tr><td><?php echo $week[2]?></td><td><?php echo $week[3]?></td></tr>
-					<tr><td><?php echo $week[4]?></td><td><?php echo $week[5]?></td></tr>
 					</table></div>
 					<hr>
 					<h3>Most Common Locations:</h3><div class="table-responsive"><table class="table table-striped"><thread><tr><th>Location</th><th>Number of Users</th></tr></thread>
@@ -883,7 +790,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 											},
 											defaultTheme: false
 										  },
-										  colors: ["#375a7f", "#009871", "rgb(203,75,75)", "rgb(175,216,248)", "#7B68EE", "#FFF5EE"]
+										  colors: ["#375a7f", "#009871", "rgb(203,75,75)", "#D3C349", "#D39249","#7B68EE", "#FFF5EE",  "rgb(175,216,248)"]
 									});
 									placeholder.bind("plothover", function(event, pos, obj) {
 										if (!obj) {
@@ -937,7 +844,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 											},
 											defaultTheme: false
 										  },
-										  colors: ["#375a7f", "#009871", "rgb(203,75,75)", "rgb(175,216,248)", "#7B68EE", "#FFF5EE"]
+										colors: ["#375a7f", "#009871", "rgb(203,75,75)", "#D3C349", "#D39249","#7B68EE", "#FFF5EE",  "rgb(175,216,248)"]
 									});
 									placeholder2.bind("plothover", function(event, pos, obj) {
 										if (!obj) {
@@ -988,7 +895,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 											},
 											defaultTheme: false
 										  },
-										  colors: ["#375a7f", "#009871", "rgb(203,75,75)", "rgb(175,216,248)", "#7B68EE", "#FFF5EE"]
+										colors: ["#375a7f", "#009871", "rgb(203,75,75)", "#D3C349", "#D39249","#7B68EE", "#FFF5EE",  "rgb(175,216,248)"]
 									});
 									placeholder3.bind("plothover", function(event, pos, obj) {
 										if (!obj) {
@@ -1040,7 +947,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 											},
 											defaultTheme: false
 										  },
-										  colors: ["#375a7f", "#009871", "rgb(203,75,75)", "rgb(175,216,248)", "#7B68EE", "#FFF5EE"]
+										colors: ["#375a7f", "#009871", "rgb(203,75,75)", "#D3C349", "#D39249","#7B68EE", "#FFF5EE",  "rgb(175,216,248)"]
 									});
 									placeholder6.bind("plothover", function(event, pos, obj) {
 										if (!obj) {
@@ -1114,7 +1021,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 											},
 											defaultTheme: false
 										  },
-										  colors: ["#375a7f", "#009871", "rgb(203,75,75)", "rgb(175,216,248)", "#7B68EE", "#FFF5EE"]
+										colors: ["#375a7f", "#009871", "rgb(203,75,75)", "#D3C349", "#D39249","#7B68EE", "#FFF5EE",  "rgb(175,216,248)"]
 									});
 									placeholder4.bind("plothover", function(event, pos, obj) {
 										if (!obj) {
@@ -1178,7 +1085,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 											},
 											defaultTheme: false
 										  },
-										  colors: ["#375a7f", "#009871", "rgb(203,75,75)", "rgb(175,216,248)", "#7B68EE", "#FFF5EE"]
+										colors: ["#375a7f", "#009871", "rgb(203,75,75)", "#D3C349", "#D39249","#7B68EE", "#FFF5EE",  "rgb(175,216,248)"]
 									});
 									placeholder7.bind("plothover", function(event, pos, obj) {
 										if (!obj) {
@@ -1242,7 +1149,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 											},
 											defaultTheme: false
 										  },
-										  colors: ["#375a7f", "#009871", "rgb(203,75,75)", "rgb(175,216,248)", "#7B68EE", "#FFF5EE"]
+										colors: ["#375a7f", "#009871", "rgb(203,75,75)", "#D3C349", "#D39249","#7B68EE", "#FFF5EE",  "rgb(175,216,248)"]
 									});
 									placeholder5.bind("plothover", function(event, pos, obj) {
 										if (!obj) {
