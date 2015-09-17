@@ -239,12 +239,10 @@ Github: github.com/md100play/TideAwareAnalytics/
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+		<script src="/flot/jquery.bootstrap-autohidingnavbar.min.js"></script>
 		<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
-		<style type="text/css">
-			body {
-				padding-top: 50px;
-			} 
-			
+		<style type="text/css">		
+			body {padding-top: 50px;}
 			.piechart {
 				position: relative;
 				width: 100%;
@@ -379,7 +377,9 @@ Github: github.com/md100play/TideAwareAnalytics/
 				</div>
 			</div>
 		</div>
-		
+		<script type="text/javascript">
+			$(".navbar-fixed-top").autoHidingNavbar();
+		</script>
 		<div class="container-fluid">
 			<div class="row vdivide">
 				<div class="col-md-4">
@@ -637,7 +637,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 									mode: "time",
 									tickSize: [2, "day"],
 									tickLength: 5,
-									min: (new Date("<?php echo date("Y, m, d", strtotime("today", $startDate));?>")).getTime(),
+									min: (new Date("<?php echo date("Y, m, d", strtotime("today", $startDate));?>")).getTime()+7200000,
 									max: (new Date("<?php echo date("Y, m, d", strtotime("today", $endDate));?>")).getTime()+7200000
 								},
 								selection: {
@@ -702,7 +702,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 								colors: ["#375a7f", "#009871"]
 							});
 							
-							overview.setSelection({xaxis: {from:(new Date("<?php echo date("Y, m, d", strtotime("today", $startDate));?>")).getTime(), to:(new Date("<?php echo date("Y, m, d", strtotime("today", $endDate));?>")).getTime()+7200000}});
+							overview.setSelection({xaxis: {from:(new Date("<?php echo date("Y, m, d", strtotime("today", $startDate));?>")).getTime()+7200000, to:(new Date("<?php echo date("Y, m, d", strtotime("today", $endDate));?>")).getTime()+7200000}});
 							
 							$("#visitors").bind("plotselected", function (event, ranges) {
 								$.each(plot.getXAxes(), function(_, axis) {
@@ -796,7 +796,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 									mode: "time",
 									tickSize: [2, "day"],
 									tickLength: 5,
-									min: (new Date("<?php echo date("Y, m, d", strtotime("today", $startDate));?>")).getTime(),
+									min: (new Date("<?php echo date("Y, m, d", strtotime("today", $startDate));?>")).getTime()+7200000,
 									max: (new Date("<?php echo date("Y, m, d", strtotime("today", $endDate));?>")).getTime()+7200000
 								},
 								selection: {
@@ -861,7 +861,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 								colors: ["#375a7f", "#009871"]
 							});
 							
-							overview2.setSelection({xaxis: {from:(new Date("<?php echo date("Y, m, d", strtotime("today", $startDate));?>")).getTime(), to:(new Date("<?php echo date("Y, m, d", strtotime("today", $endDate));?>")).getTime()+7200000}});
+							overview2.setSelection({xaxis: {from:(new Date("<?php echo date("Y, m, d", strtotime("today", $startDate));?>")).getTime()+7200000, to:(new Date("<?php echo date("Y, m, d", strtotime("today", $endDate));?>")).getTime()+7200000}});
 							
 							$("#lookups").bind("plotselected", function (event, ranges) {
 								$.each(plot2.getXAxes(), function(_, axis) {
