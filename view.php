@@ -7,6 +7,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 	$user = "*****************";
 	$pass = "####################";
 	$link = mysqli_connect("localhost", $user, $pass, $database) or die("Error " . mysqli_error($link));
+	date_default_timezone_set('UTC');
 	
 	$startDate = date("U", strtotime("-1 week", time()));
 	$endDate = date("U", time());
@@ -170,14 +171,12 @@ Github: github.com/md100play/TideAwareAnalytics/
 			$found = false;
 			foreach($rows as $k=>$v){
 				foreach($v as $s){
+					if(!isset($usTotal[date("U", strtotime("today", intval($s)))])){
+						$usTotal[date("U", strtotime("today", intval($s)))] = 0;
+					}
 					if(!$found){
-						$found = true;
-					}
-					if(isset($usTotal[date("U", strtotime("today", intval($s)))])){
 						$usTotal[date("U", strtotime("today", intval($s)))] = $usTotal[date("U", strtotime("today", intval($s)))]+1;
-					}
-					else {
-						$usTotal[date("U", strtotime("today", intval($s)))] = 1;
+					$found = True;
 					}
 				}
 			}
@@ -188,14 +187,12 @@ Github: github.com/md100play/TideAwareAnalytics/
 			$found = false;
 			foreach($rows as $k=>$v){
 				foreach($v as $s){
+					if(!isset($nusTotal[date("U", strtotime("today", intval($s)))])){
+						$nusTotal[date("U", strtotime("today", intval($s)))] = 0;
+					}
 					if(!$found){
-						$found = true;
-					}
-					if(isset($nusTotal[date("U", strtotime("today", intval($s)))])){
 						$nusTotal[date("U", strtotime("today", intval($s)))] = $nusTotal[date("U", strtotime("today", intval($s)))]+1;
-					}
-					else {
-						$nusTotal[date("U", strtotime("today", intval($s)))] = 1;
+					$found = True;
 					}
 				}
 			}
@@ -210,7 +207,6 @@ Github: github.com/md100play/TideAwareAnalytics/
 		
 		while($row = mysqli_fetch_assoc($result)){
 			$rows = json_decode($row['Lookup'], True);
-			$found = false;
 			foreach($rows as $k=>$v){
 				foreach($v as $s){
 					if(isset($lookups[date("U", strtotime("today", intval($s)))])){
@@ -222,6 +218,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 				}
 			}
 		}
+		
 		ksort($lookups);
 		return $lookups;
 	}
@@ -400,7 +397,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 					<h3>Total Non-US Users: <?php echo(intval(mysqli_fetch_array(mysqli_query($link, "SELECT COUNT(1) from `Users` WHERE `US`='0'"))[0]));?></h3>
 					<hr>
 					<h2>Total Number of Users: <?php 
-						$currentResult = mysqli_query($link, "SELECT * from `Users` HAVING `Last Time` <= '".$endDate."'"); 
+						$currentResult = mysqli_query($link, "SELECT * from `Users` HAVING `Last Time` <= '".intval($endDate)."'"); 
 						$oldResult = mysqli_query($link, "SELECT * from `Users` HAVING `Last Time`<= '".intval($endDate-($endDate-$startDate))."'");
 						
 						$allRes = compareUsers($currentResult, $oldResult, $startDate, $endDate);
@@ -593,11 +590,13 @@ Github: github.com/md100play/TideAwareAnalytics/
 			<hr width=100%>
 			<div class="row vdivide" id="uniques">
 				<div class="col-md-6">
-					<h1>Daily Unique Users</h1>
+					<h2>Daily Unique Users</h2>
 					<script type="text/javascript">
+						var timezone = new Date().getTimezoneOffset()*60*-1000;
+						
 						$(function() {
 							var d = <?php 
-								$result = dailyUniques(mysqli_query($link, "SELECT * from `Users` WHERE `US` = '1' HAVING `Last Time` <= '".intval(date("U", strtotime("today", $endDate))+72000)."'"), mysqli_query($link, "SELECT * from `Users` WHERE `US` = '0' HAVING `Last Time` <= '".intval(date("U", strtotime("today", $endDate))+72000)."'"));
+								$result = dailyUniques(mysqli_query($link, "SELECT * from `Users` WHERE `US` = '1' HAVING `Last Time` <= '".intval($endDate) ."'"), mysqli_query($link, "SELECT * from `Users` WHERE `US` = '0' HAVING `Last Time` <= '".intval($endDate)."'"));
 								$US = array();
 								$nUS = array();
 								foreach($result[0] as $s=>$v){
@@ -611,9 +610,11 @@ Github: github.com/md100play/TideAwareAnalytics/
 							
 							for (var i = 0; i < d[0]['data'].length; ++i) {
 								d[0]['data'][i][0] *= 1000;
+								d[0]['data'][i][0] += timezone;
 							}
 							for (var i = 0; i < d[1]['data'].length; ++i) {
 								d[1]['data'][i][0] *= 1000;
+								d[1]['data'][i][0] += timezone;
 							}
 							
 							function weekendAreas(axes) {
@@ -631,14 +632,14 @@ Github: github.com/md100play/TideAwareAnalytics/
 
 								return markings;
 							}
-
+							
 							var options = {
 								xaxis: {
 									mode: "time",
 									tickSize: [2, "day"],
 									tickLength: 5,
-									min: (new Date("<?php echo date("Y, m, d", strtotime("today", $startDate));?>")).getTime()+7200000,
-									max: (new Date("<?php echo date("Y, m, d", strtotime("today", $endDate));?>")).getTime()+7200000
+									min: (<?php echo date("U", strtotime("today", $startDate))*1000;?>+timezone),
+									max: (<?php echo date("U", strtotime("today", $endDate))*1000;?>+timezone)
 								},
 								selection: {
 									mode: "x"
@@ -702,7 +703,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 								colors: ["#375a7f", "#009871"]
 							});
 							
-							overview.setSelection({xaxis: {from:(new Date("<?php echo date("Y, m, d", strtotime("today", $startDate));?>")).getTime()+7200000, to:(new Date("<?php echo date("Y, m, d", strtotime("today", $endDate));?>")).getTime()+7200000}});
+							overview.setSelection({xaxis: {from: <?php echo date("U", strtotime("today", $startDate))*1000;?>+timezone, to: <?php echo date("U", strtotime("today", $endDate))*1000;?>+timezone}});
 							
 							$("#visitors").bind("plotselected", function (event, ranges) {
 								$.each(plot.getXAxes(), function(_, axis) {
@@ -759,11 +760,11 @@ Github: github.com/md100play/TideAwareAnalytics/
 					</div>
 				</div>
 				<div class="col-md-6">
-					<h1>Total Lookups</h1>
+					<h2>Total Lookups in View: <span id="numLookup"></span></h2>
 					<script type="text/javascript">
 						$(function() {
-							var d = <?php 
-								$result = dailyLookups(mysqli_query($link, "SELECT * from `Users` HAVING `Last Time` <= '".intval(date("U", strtotime("today", $endDate))+72000)."'"));
+							var d = <?php
+								$result = dailyLookups(mysqli_query($link, "SELECT * from `Users` HAVING `Last Time` <= '".$endDate."'"));
 								$arr = array();
 								foreach($result as $s=>$v){
 									array_push($arr, array(intval($s), intval($v)));
@@ -773,6 +774,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 							
 							for (var i = 0; i < d[0]['data'].length; ++i) {
 								d[0]['data'][i][0] *= 1000;
+								d[0]['data'][i][0] += timezone;
 							}
 
 							function weekendAreas(axes) {
@@ -796,8 +798,8 @@ Github: github.com/md100play/TideAwareAnalytics/
 									mode: "time",
 									tickSize: [2, "day"],
 									tickLength: 5,
-									min: (new Date("<?php echo date("Y, m, d", strtotime("today", $startDate));?>")).getTime()+7200000,
-									max: (new Date("<?php echo date("Y, m, d", strtotime("today", $endDate));?>")).getTime()+7200000
+									min: <?php echo date("U", strtotime("today", $startDate))*1000;?>+timezone,
+									max: <?php echo date("U", strtotime("today", $endDate))*1000;?>+timezone
 								},
 								selection: {
 									mode: "x"
@@ -861,7 +863,19 @@ Github: github.com/md100play/TideAwareAnalytics/
 								colors: ["#375a7f", "#009871"]
 							});
 							
-							overview2.setSelection({xaxis: {from:(new Date("<?php echo date("Y, m, d", strtotime("today", $startDate));?>")).getTime()+7200000, to:(new Date("<?php echo date("Y, m, d", strtotime("today", $endDate));?>")).getTime()+7200000}});
+							overview2.setSelection({xaxis: {from: <?php echo date("U", strtotime("today", $startDate))*1000;?>+timezone, to:<?php echo date("U", strtotime("today", $endDate))*1000;?>+timezone}});
+												
+							function setSpan(ranges){
+								var completeLookups = 0;
+								for (i=0; i<d[0]['data'].length; i++){
+									if(parseInt(d[0]['data'][i][0]) >= parseInt(ranges['xaxis']['from']) && parseInt(d[0]['data'][i][0]) <= parseInt(ranges['xaxis']['to'])){
+										completeLookups = completeLookups + parseInt(d[0]['data'][i][1]);
+									}
+								}
+								$("#numLookup").text(completeLookups);
+							}
+							
+							setSpan({xaxis: {from: <?php echo date("U", strtotime("today", $startDate))*1000;?>+timezone, to:<?php echo date("U", strtotime("today", $endDate))*1000;?>+timezone}});
 							
 							$("#lookups").bind("plotselected", function (event, ranges) {
 								$.each(plot2.getXAxes(), function(_, axis) {
@@ -876,11 +890,12 @@ Github: github.com/md100play/TideAwareAnalytics/
 								// don't fire event on the overview2 to prevent eternal loop
 
 								overview2.setSelection(ranges, true);
+								setSpan(ranges);
 							});
 
 							$("#overview2").bind("plotselected", function (event, ranges) {
 								plot2.setSelection(ranges);
-								console.log(ranges);
+								setSpan(ranges);
 							});
 							
 							$("#overview2").bind("plotunselected", function (event) {
@@ -893,6 +908,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 								yaxis.max = null;
 								plot2.setupGrid();
 								plot2.draw();
+								setSpan({xaxis: {from: plot2.getXAxes()[0]["min"], to: plot2.getXAxes()[0]["max"]}});
 							});
 							
 							$("#lookups").bind("plothover", function(event, pos, obj) {
