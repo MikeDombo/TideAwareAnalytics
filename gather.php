@@ -7,7 +7,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 $database = "################";
 $user = "#################";
 $pass = "**********************";
-
+date_default_timezone_set('UTC');
 $link = mysqli_connect("localhost", $user, $pass, $database) or die("Error " . mysqli_error($link));
 
 
