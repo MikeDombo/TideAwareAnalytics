@@ -9,7 +9,6 @@ $user = "#################";
 $pass = "**********************";
 
 $link = mysqli_connect("localhost", $user, $pass, $database) or die("Error " . mysqli_error($link));
-
 date_default_timezone_set('UTC');
 
 function distance($lat1, $lon1, $lat2, $lon2) {
@@ -45,7 +44,7 @@ if (isset($_GET['location'])){
 		$arr = json_decode($row['Lookup'], True);
 		
 		if (count($arr)>0 && isset($arr[$loc])){
-			array_unshift($arr[$loc], strval(time()));
+			array_unshift($arr[$loc], date("U", time()));
 		}
 		else if (explode(",", $loc)[0] != $loc && count($arr)>0){
 			$close=False;
@@ -57,20 +56,17 @@ if (isset($_GET['location'])){
 					$lon2 = floatval(explode(",", $loc)[1]);
 					$distance = distance($lat1, $lon1, $lat2, $lon2);
 					if ($distance <= 25){
-						array_unshift($v, date("U", time()));
+						array_unshift($arr[$k], date("U", time()));
 						$close=True;
 					}
 				}
 			}
 			if(!$close){
-				$arr[$loc] = array(strval(time()));
-			}
-			else{
-			$arr[$loc] = array(strval(time()));
+				$arr[$loc] = array(date("U", time()));
 			}
 		}
 		else{
-			$arr[$loc] = array(strval(time()));
+			$arr[$loc] = array(date("U", time()));
 		}
 		mysqli_query($link, "UPDATE `Users` SET `Lookup`='".json_encode($arr)."' WHERE `ID`= '".$_GET['ID']."'");
 		$error = mysqli_error($link);
