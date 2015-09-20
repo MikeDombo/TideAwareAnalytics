@@ -7,9 +7,10 @@ Github: github.com/md100play/TideAwareAnalytics/
 $database = "################";
 $user = "#################";
 $pass = "**********************";
-date_default_timezone_set('UTC');
+
 $link = mysqli_connect("localhost", $user, $pass, $database) or die("Error " . mysqli_error($link));
 
+date_default_timezone_set('UTC');
 
 function distance($lat1, $lon1, $lat2, $lon2) {
 	$theta = $lon1 - $lon2;
@@ -39,39 +40,42 @@ if (isset($_GET['location'])){
 			mysqli_query($link, "INSERT INTO `Users` (`Unique`, `ID`, `First Time`, `Last Time`, `Tide Locations`, `Version`, `US`, `Lookup`) VALUES ('".$unique."', '".$_GET['ID']."', '".time()."', '".time()."', '".$_GET['settings']."', '".$_GET['ver']."', '".$us."', '".json_encode(array())."')");
 			}
 		
-		$table = "Users";
 		$loc = $_GET['location'];
 		$row = mysqli_fetch_array(mysqli_query($link, "SELECT * from `Users` WHERE `ID`='".$_GET['ID']."'"));
-		if(isset($row['Lookup'])){
-			$arr = json_decode($row['Lookup'], True);
-			if (isset($arr[$loc])){
-				array_unshift($arr[$loc], strval(time()));
-			}
-			else if (explode(",", $loc)[0] != $loc && count($arr)>0){
-				$close=False;
-				foreach ($arr as $k => $v){
-					if (explode(",", $k)[0] != strlen($k) && count(explode(",", $k))>1 && count(explode(",", $loc))>1){
-						$lat1 = floatval(explode(",", $k)[0]);
-						$lon1 = floatval(explode(",", $k)[1]);
-						$lat2 = floatval(explode(",", $loc)[0]);
-						$lon2 = floatval(explode(",", $loc)[1]);
-						$distance = distance($lat1, $lon1, $lat2, $lon2);
-						if ($distance <= 25){
-							array_unshift($v, time());
-							$close=True;
-							}
-						}
+		$arr = json_decode($row['Lookup'], True);
+		
+		if (count($arr)>0 && isset($arr[$loc])){
+			array_unshift($arr[$loc], strval(time()));
+		}
+		else if (explode(",", $loc)[0] != $loc && count($arr)>0){
+			$close=False;
+			foreach ($arr as $k => $v){
+				if (explode(",", $k)[0] != strlen($k) && count(explode(",", $k))>1 && count(explode(",", $loc))>1){
+					$lat1 = floatval(explode(",", $k)[0]);
+					$lon1 = floatval(explode(",", $k)[1]);
+					$lat2 = floatval(explode(",", $loc)[0]);
+					$lon2 = floatval(explode(",", $loc)[1]);
+					$distance = distance($lat1, $lon1, $lat2, $lon2);
+					if ($distance <= 25){
+						array_unshift($v, date("U", time()));
+						$close=True;
 					}
-			if(!$close){
-				$arr[$loc] = array(strval(time()));
 				}
 			}
-			else{
+			if(!$close){
 				$arr[$loc] = array(strval(time()));
 			}
-			mysqli_query($link, "UPDATE `Users` SET `Lookup`='".json_encode($arr)."' WHERE `ID`= '".$_GET['ID']."'");
+			else{
+			$arr[$loc] = array(strval(time()));
+			}
 		}
+		else{
+			$arr[$loc] = array(strval(time()));
+		}
+		mysqli_query($link, "UPDATE `Users` SET `Lookup`='".json_encode($arr)."' WHERE `ID`= '".$_GET['ID']."'");
+		$error = mysqli_error($link);
+		if($error != null){error_log($error);}
+		
 	}
 }
-
 ?>
