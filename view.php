@@ -26,6 +26,13 @@ Github: github.com/md100play/TideAwareAnalytics/
 			}
 		}
 	}
+
+	$tz = 0;
+	if(isset($_COOKIE['tz'])){
+		$tz = $_COOKIE['tz'];
+		$startDate = $startDate+$tz;
+		$endDate = $endDate+$tz;
+	}
 	
 	function generateChart($result){
 		$final = array();
@@ -131,7 +138,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 			$found = false;
 			foreach($rows as $k=>$v){
 				foreach($v as $s){
-					if(intval($s)>=intval($start) && intval($s)<=intval($end)){
+					if($s >= date("U", strtotime("today", $start)) && $s <= $end){
 						if(!$found){
 							$current = $current + 1;
 							$found = true;
@@ -147,7 +154,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 			$found = false;
 			foreach($rows as $k=>$v){
 				foreach($v as $s){
-					if(intval($s)>=intval($start-($end-$start)) && intval($s)<=intval($end-($end-$start))){
+					if($s >= date("U", strtotime("today", $start-($end-$start))) && $s <= $end-($end-$start)){
 						if(!$found){
 							$old = $old + 1;
 							$found = true;
@@ -160,7 +167,6 @@ Github: github.com/md100play/TideAwareAnalytics/
 		
 		return [$current, $old, $currentTotal, $oldTotal];
 	}
-	
 	
 	function dailyUniques($usResult, $nusResult){
 		$usTotal = array();
@@ -197,6 +203,18 @@ Github: github.com/md100play/TideAwareAnalytics/
 				}
 			}
 		}
+		
+		foreach($usTotal as $k => $v){
+			if(!isset($nusTotal[date("U", strtotime("today", $k))])){
+				$nusTotal[date("U", strtotime("today", $k))] = 0;
+			}
+		}
+		foreach($nusTotal as $k => $v){
+			if(!isset($usTotal[date("U", strtotime("today", $k))])){
+				$usTotal[date("U", strtotime("today", $k))] = 0;
+			}
+		}
+		
 		ksort($usTotal);
 		ksort($nusTotal);
 		return [$usTotal, $nusTotal];
@@ -231,13 +249,13 @@ Github: github.com/md100play/TideAwareAnalytics/
 		<link rel="import" href="/bower_components/core-icons/core-icons.html"></link>
 		<link rel="import" href="/bower_components/core-icon/core-icon.html"></link>
 		<link rel="stylesheet" href="bootstrap.min.css"></link>
-		<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
 		<link rel="shortcut icon" href="http://mikedombrowski.com/analytics/favicon.ico">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 		<script src="/flot/jquery.bootstrap-autohidingnavbar.min.js"></script>
-		<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+		<script src="/flot/jquery-ui.min.js"></script>
+		<link rel="stylesheet" href="/flot/jquery-ui.min.css"></link>
 		<style type="text/css">		
 			body {padding-top: 50px;}
 			.piechart {
@@ -354,10 +372,10 @@ Github: github.com/md100play/TideAwareAnalytics/
 							<a href="#" data-toggle="dropdown" class="dropdown-toggle" role="button" aria-expanded="false" aria-haspopup="true">Time Frame <span class="caret"></span></a>
 							<ul class="dropdown-menu" id="date">
 								<li class="dropdown-header">Predefined Time Frame</li>
-								<li><a href="?start=<?php echo date("m/d/Y", strtotime("today -1 month"))."&end=".date("m/d/Y", strtotime("today"));?>">Past Month</a></li>
-								<li><a href="?start=<?php echo date("m/d/Y", strtotime("today -1 week"))."&end=".date("m/d/Y", strtotime("today"));?>">Past Week</a></li>
-								<li><a href="?start=<?php echo date("m/d/Y", strtotime("today -1 day"))."&end=".date("m/d/Y", strtotime("today"));?>">Past Day</a></li>
-								<li><a href="?start=<?php echo date("m/d/Y", strtotime("today"))."&end=".date("m/d/Y", strtotime("today +1 day"));?>">Today</a></li>
+								<li><a id="past-month" href="?start=<?php echo date("m/d/Y", strtotime("-1 month", time()+$tz))."&end=".date("m/d/Y", time()+$tz);?>">Past Month</a></li>
+								<li><a id="past-week" href="?start=<?php echo date("m/d/Y", strtotime("-1 week", time()+$tz))."&end=".date("m/d/Y", time()+$tz);?>">Past Week</a></li>
+								<li><a id="past-day" href="?start=<?php echo date("m/d/Y", strtotime("-1 day", time()+$tz))."&end=".date("m/d/Y", time()+$tz);?>">Past Day</a></li>
+								<li><a id="today-day" href="?start=<?php echo date("m/d/Y", time()+$tz)."&end=".date("m/d/Y", strtotime("+1 day", time()+$tz));?>">Today</a></li>
 								<li class="divider" role="separator"></li>
 								<li class="dropdown-header">Custom Time Frame</li>
 								<li><a>
@@ -385,12 +403,12 @@ Github: github.com/md100play/TideAwareAnalytics/
 							window.alert("Counting began <?php echo date("Y-m-d", 1439933414);?>");
 						}
 					</script>
-					<script language="javascript" type="text/javascript" src="/flot/jquery.flot.js"></script>
-					<script language="javascript" type="text/javascript" src="/flot/jquery.flot.pie.js"></script>
-					<script language="javascript" type="text/javascript" src="/flot/jquery.flot.tooltip.js"></script>
-					<script language="javascript" type="text/javascript" src="/flot/jquery.flot.time.js"></script>
-					<script language="javascript" type="text/javascript" src="/flot/jquery.flot.selection.js"></script>
-					<script language="javascript" type="text/javascript" src="/flot/jquery.flot.stack.js"></script>
+					<script language="javascript" type="text/javascript" src="/flot/jquery.flot.min.js"></script>
+					<script language="javascript" type="text/javascript" src="/flot/jquery.flot.pie.min.js"></script>
+					<script language="javascript" type="text/javascript" src="/flot/jquery.flot.tooltip.min.js"></script>
+					<script language="javascript" type="text/javascript" src="/flot/jquery.flot.time.min.js"></script>
+					<script language="javascript" type="text/javascript" src="/flot/jquery.flot.selection.min.js"></script>
+					<script language="javascript" type="text/javascript" src="/flot/jquery.flot.stack.min.js"></script>
 					
 					<h2><a href="#" onclick="since()">Total Number of Users Ever: <?php echo(intval(mysqli_fetch_array(mysqli_query($link, "SELECT COUNT(1) from `Users`"))[0]));?></a></h2>
 					<h3>Total US Users: <?php echo(intval(mysqli_fetch_array(mysqli_query($link, "SELECT COUNT(1) from `Users` WHERE `US`='1'"))[0]));?></h3>
@@ -505,11 +523,15 @@ Github: github.com/md100play/TideAwareAnalytics/
 					while($row = mysqli_fetch_array($result)){
 						$row = json_decode($row['Lookup'], True);
 						foreach($row as $k=>$v){
-							if(isset($arr[$k])){
-								$arr[$k] = $arr[$k]+count($v);
-							}
-							else {
-								$arr[$k] = count($v);
+							foreach($v as $k2 => $v2){
+								if($v2 >= $startDate && $v2 < $endDate){
+									if(isset($arr[$k])){
+										$arr[$k] = $arr[$k]+1;
+									}
+									else {
+										$arr[$k] = 1;
+									}
+								}
 							}
 						}
 					}
@@ -527,9 +549,9 @@ Github: github.com/md100play/TideAwareAnalytics/
 					</table></div>
 					<hr>
 					<h3>Top Locations:</h3><div class="table-responsive"><table class="table table-striped"><thread><tr><th>Location</th><th>Number of Lookups</th></tr></thread>
-					<tr><td><?php echo $day[0]?></td><td><?php echo $day[1]?></td></tr>
-					<tr><td><?php echo $day[2]?></td><td><?php echo $day[3]?></td></tr>
-					<tr><td><?php echo $day[4]?></td><td><?php echo $day[5]?></td></tr>
+					<?php if(isset($day[0]) && isset($day[1])){echo "<tr><td>$day[0]</td><td>$day[1]</td></tr>";}?>
+					<?php if(isset($day[2]) && isset($day[3])){echo "<tr><td>$day[2]</td><td>$day[3]</td></tr>";}?>
+					<?php if(isset($day[4]) && isset($day[5])){echo "<tr><td>$day[4]</td><td>$day[5]</td></tr>";}?>
 					</table></div>
 				</div>
 				<div class="col-md-4">
@@ -581,9 +603,9 @@ Github: github.com/md100play/TideAwareAnalytics/
 					</table></div>
 					<hr>
 					<h3>Most Common Locations:</h3><div class="table-responsive"><table class="table table-striped"><thread><tr><th>Location</th><th>Number of Users</th></tr></thread>
-					<tr><td><?php echo $day[0]?></td><td><?php echo $day[1]?></td></tr>
-					<tr><td><?php echo $day[2]?></td><td><?php echo $day[3]?></td></tr>
-					<tr><td><?php echo $day[4]?></td><td><?php echo $day[5]?></td></tr>
+					<?php if(isset($day[0]) && isset($day[1])){echo "<tr><td>$day[0]</td><td>$day[1]</td></tr>";}?>
+					<?php if(isset($day[2]) && isset($day[3])){echo "<tr><td>$day[2]</td><td>$day[3]</td></tr>";}?>
+					<?php if(isset($day[4]) && isset($day[5])){echo "<tr><td>$day[4]</td><td>$day[5]</td></tr>";}?>
 					</table></div>
 				</div>
 			</div>
@@ -592,11 +614,72 @@ Github: github.com/md100play/TideAwareAnalytics/
 				<div class="col-md-6">
 					<h2>Daily Unique Users</h2>
 					<script type="text/javascript">
-						var timezone = new Date().getTimezoneOffset()*60*-1000;
+						var timezone = new Date().getTimezoneOffset()*60*1000;
+						document.cookie = "tz="+(timezone/1000);
+						var origRange = {xaxis: {from: <?php echo date("U", strtotime("today", $startDate))*1000;?>+timezone, to: <?php echo date("U", strtotime("today", $endDate))*1000;?>+timezone}};
+						
+						function setTicks(plot, ranges){
+							var data = plot.getData();
+							var to = ranges['xaxis']['to'];
+							var from = ranges['xaxis']['from'];
+							if(ranges['xaxis']['to'] === null) {
+								var max = 0;
+								var min = Number.MAX_SAFE_INTEGER;
+								for (var i=0; i<data.length; i++){
+									var last = data[i].data[data[i].data.length-1][0];
+									var first = data[i].data[0][0];
+									if (last > max){
+										max = last;
+									}
+									if (first < min){
+										min = first;
+									}
+								}
+								to = max;
+								from = min;
+							}
+							
+							difference = 4*((to - from)/360000); //difference in hours
+							var ticks = [];
+							if (difference/plot.width() < 10){
+								ticks = ['1', 'day'];
+							}
+							else if (difference/plot.width() >= 10 && difference/plot.width() < 20){
+								ticks = ['2', 'day'];
+							}
+							else if (difference/plot.width() >= 20 && difference/plot.width() < 30){
+								ticks = ['3', 'day'];
+							}
+							else if (difference/plot.width() >= 30 && difference/plot.width() < 45){
+								ticks = ['5', 'day'];
+							}
+							else if (difference/plot.width() >= 45 && difference/plot.width() < 60){
+								ticks = ['7', 'day'];
+							}
+							else if (difference/plot.width() >= 60 && difference/plot.width() < 90){
+								ticks = ['2', 'week'];
+							}
+							else if (difference/plot.width() >= 90 && difference/plot.width() < 120){
+								ticks = ['1', 'month'];
+							}
+							else if (difference/plot.width() >= 120 && difference/plot.width() < 180){
+								ticks = ['2', 'month'];
+							}
+							else if (difference/plot.width() >= 180 && difference/plot.width() < 240){
+								ticks = ['3', 'month'];
+							}
+							else {
+								ticks = ['6', 'month'];
+							}
+							
+							plot.getOptions().xaxes[0].tickSize = ticks;
+							plot.setupGrid();
+							plot.draw();
+						}
 						
 						$(function() {
 							var d = <?php 
-								$result = dailyUniques(mysqli_query($link, "SELECT * from `Users` WHERE `US` = '1' HAVING `Last Time` <= '".intval($endDate) ."'"), mysqli_query($link, "SELECT * from `Users` WHERE `US` = '0' HAVING `Last Time` <= '".intval($endDate)."'"));
+								$result = dailyUniques(mysqli_query($link, "SELECT * from `Users` WHERE `US` = '1'"), mysqli_query($link, "SELECT * from `Users` WHERE `US` = '0'"));
 								$US = array();
 								$nUS = array();
 								foreach($result[0] as $s=>$v){
@@ -638,8 +721,10 @@ Github: github.com/md100play/TideAwareAnalytics/
 									mode: "time",
 									tickSize: [2, "day"],
 									tickLength: 5,
-									min: (<?php echo date("U", strtotime("today", $startDate))*1000;?>+timezone),
-									max: (<?php echo date("U", strtotime("today", $endDate))*1000;?>+timezone)
+									min: (<?php echo date("U", strtotime("today", $startDate))*1000;?>+timezone)
+								},
+								yaxis: {
+									tickDecimals: 0
 								},
 								selection: {
 									mode: "x"
@@ -672,7 +757,8 @@ Github: github.com/md100play/TideAwareAnalytics/
 								},
 								colors: ["#375a7f", "#009871"]
 							};
-
+							
+							
 							var plot = $.plot("#visitors", d, options);
 							var overview = $.plot("#overview", d, {
 								series: {
@@ -703,7 +789,8 @@ Github: github.com/md100play/TideAwareAnalytics/
 								colors: ["#375a7f", "#009871"]
 							});
 							
-							overview.setSelection({xaxis: {from: <?php echo date("U", strtotime("today", $startDate))*1000;?>+timezone, to: <?php echo date("U", strtotime("today", $endDate))*1000;?>+timezone}});
+							setTicks(plot, origRange);
+							overview.setSelection(origRange);
 							
 							$("#visitors").bind("plotselected", function (event, ranges) {
 								$.each(plot.getXAxes(), function(_, axis) {
@@ -715,6 +802,8 @@ Github: github.com/md100play/TideAwareAnalytics/
 								plot.draw();
 								plot.clearSelection();
 								overview.setSelection(ranges, true);
+								
+								setTicks(plot, ranges);
 							});
 
 							$("#overview").bind("plotselected", function (event, ranges) {
@@ -731,6 +820,8 @@ Github: github.com/md100play/TideAwareAnalytics/
 								yaxis.max = null;
 								plot.setupGrid();
 								plot.draw();
+								
+								setTicks(plot, {xaxis: {from:plot.getOptions().xaxis.min , to:plot.getOptions().xaxes[0].max}});
 							});
 							
 							$("#visitors").bind("plothover", function(event, pos, obj) {
@@ -764,7 +855,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 					<script type="text/javascript">
 						$(function() {
 							var d = <?php
-								$result = dailyLookups(mysqli_query($link, "SELECT * from `Users` HAVING `Last Time` <= '".$endDate."'"));
+								$result = dailyLookups(mysqli_query($link, "SELECT * from `Users`"));
 								$arr = array();
 								foreach($result as $s=>$v){
 									array_push($arr, array(intval($s), intval($v)));
@@ -798,8 +889,10 @@ Github: github.com/md100play/TideAwareAnalytics/
 									mode: "time",
 									tickSize: [2, "day"],
 									tickLength: 5,
-									min: <?php echo date("U", strtotime("today", $startDate))*1000;?>+timezone,
-									max: <?php echo date("U", strtotime("today", $endDate))*1000;?>+timezone
+									min: <?php echo date("U", strtotime("today", $startDate))*1000;?>+timezone
+								},
+								yaxis: {
+									tickDecimals: 0
 								},
 								selection: {
 									mode: "x"
@@ -863,7 +956,8 @@ Github: github.com/md100play/TideAwareAnalytics/
 								colors: ["#375a7f", "#009871"]
 							});
 							
-							overview2.setSelection({xaxis: {from: <?php echo date("U", strtotime("today", $startDate))*1000;?>+timezone, to:<?php echo date("U", strtotime("today", $endDate))*1000;?>+timezone}});
+							overview2.setSelection(origRange);
+							setTicks(plot2, origRange);
 												
 							function setSpan(ranges){
 								var completeLookups = 0;
@@ -875,7 +969,7 @@ Github: github.com/md100play/TideAwareAnalytics/
 								$("#numLookup").text(completeLookups);
 							}
 							
-							setSpan({xaxis: {from: <?php echo date("U", strtotime("today", $startDate))*1000;?>+timezone, to:<?php echo date("U", strtotime("today", $endDate))*1000;?>+timezone}});
+							setSpan(origRange);
 							
 							$("#lookups").bind("plotselected", function (event, ranges) {
 								$.each(plot2.getXAxes(), function(_, axis) {
@@ -888,13 +982,15 @@ Github: github.com/md100play/TideAwareAnalytics/
 								plot2.clearSelection();
 
 								// don't fire event on the overview2 to prevent eternal loop
-
+								setTicks(plot2, ranges);
 								overview2.setSelection(ranges, true);
 								setSpan(ranges);
 							});
 
 							$("#overview2").bind("plotselected", function (event, ranges) {
+								
 								plot2.setSelection(ranges);
+								
 								setSpan(ranges);
 							});
 							
@@ -908,7 +1004,9 @@ Github: github.com/md100play/TideAwareAnalytics/
 								yaxis.max = null;
 								plot2.setupGrid();
 								plot2.draw();
+								
 								setSpan({xaxis: {from: plot2.getXAxes()[0]["min"], to: plot2.getXAxes()[0]["max"]}});
+								setTicks(plot2, {xaxis: {from:plot2.getOptions().xaxes[0].min , to:plot2.getOptions().xaxes[0].max}});
 							});
 							
 							$("#lookups").bind("plothover", function(event, pos, obj) {
@@ -1170,8 +1268,8 @@ Github: github.com/md100play/TideAwareAnalytics/
 							<script type="text/javascript">
 								$(function() {
 									var data = <?php 
-									$new = mysqli_fetch_array(mysqli_query($link, "SELECT COUNT(1) FROM (SELECT * FROM (SELECT * FROM `Users` HAVING `Last Time` >= '".date("U", strtotime("-1 month"))."') AS X HAVING `First Time` >= '".date("U", strtotime("-1 month"))."') AS T"))[0];
-									$returning = mysqli_fetch_array(mysqli_query($link, "SELECT COUNT(1) FROM (SELECT * FROM (SELECT * FROM `Users` HAVING `Last Time` >= '".date("U", strtotime("-1 month"))."') AS X HAVING `First Time` < '".date("U", strtotime("-1 month"))."') AS T"))[0];
+									$new = mysqli_fetch_array(mysqli_query($link, "SELECT COUNT(1) FROM (SELECT * FROM (SELECT * FROM `Users` HAVING `Last Time` >= '".date("U", strtotime("-1 month", time()+$tz))."') AS X HAVING `First Time` >= '".date("U", strtotime("-1 month", time()+$tz))."') AS T"))[0];
+									$returning = mysqli_fetch_array(mysqli_query($link, "SELECT COUNT(1) FROM (SELECT * FROM (SELECT * FROM `Users` HAVING `Last Time` >= '".date("U", strtotime("-1 month", time()+$tz))."') AS X HAVING `First Time` < '".date("U", strtotime("-1 month", time()+$tz))."') AS T"))[0];
 									$arr = [['label'=>"New Users", 'data'=>$new], ['label'=>"Returning Users", 'data'=>$returning]];
 									echo json_encode($arr);
 									?>;
@@ -1234,8 +1332,8 @@ Github: github.com/md100play/TideAwareAnalytics/
 							<script type="text/javascript">
 								$(function() {
 									var data = <?php 
-									$new = mysqli_fetch_array(mysqli_query($link, "SELECT COUNT(1) FROM (SELECT * FROM (SELECT * FROM `Users` HAVING `Last Time` >= '".date("U", strtotime("-1 week"))."') AS X HAVING `First Time` >= '".date("U", strtotime("-1 week"))."') AS T"))[0];
-									$returning = mysqli_fetch_array(mysqli_query($link, "SELECT COUNT(1) FROM (SELECT * FROM (SELECT * FROM `Users` HAVING `Last Time` >= '".date("U", strtotime("-1 week"))."') AS X HAVING `First Time` < '".date("U", strtotime("-1 week"))."') AS T"))[0];
+									$new = mysqli_fetch_array(mysqli_query($link, "SELECT COUNT(1) FROM (SELECT * FROM (SELECT * FROM `Users` HAVING `Last Time` >= '".date("U", strtotime("-1 week", time()+$tz))."') AS X HAVING `First Time` >= '".date("U", strtotime("-1 week", time()+$tz))."') AS T"))[0];
+									$returning = mysqli_fetch_array(mysqli_query($link, "SELECT COUNT(1) FROM (SELECT * FROM (SELECT * FROM `Users` HAVING `Last Time` >= '".date("U", strtotime("-1 week", time()+$tz))."') AS X HAVING `First Time` < '".date("U", strtotime("-1 week", time()+$tz))."') AS T"))[0];
 									$arr = [['label'=>"New Users", 'data'=>$new], ['label'=>"Returning Users", 'data'=>$returning]];
 									echo json_encode($arr);
 									?>;
